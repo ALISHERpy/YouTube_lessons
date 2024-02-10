@@ -52,3 +52,10 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sizning_emailinggiz@gmail.com'
 EMAIL_HOST_PASSWORD = 'app password oling'
 
+
+
+####urls.py:
+
+urlpatterns = [
+    path('send-email/', SendEmailView.as_view(), name='send_email'),
+    ]
