@@ -1,9 +1,10 @@
-# ##views.py
+###views.py
 
 class SendEmailView(APIView):
     serializer_class = SendEmailSerializer
-    parser_classes = (FormParser, MultiPartParser, FileUploadParser)
+    parser_classes = (FormParser, MultiPartParser)
     permission_classes = [IsAuthenticated,]
+
     @swagger_auto_schema(request_body=serializer_class)
     def post(self, request):
         serializer = SendEmailSerializer(data=request.data)
@@ -11,27 +12,35 @@ class SendEmailView(APIView):
             name = serializer.validated_data.get('name')
             message = serializer.validated_data.get('message')
             email = serializer.validated_data.get('email')
+            attachment = request.FILES.get('attachment')
+
             try:
-                send_mail(
-                    subject='Test mavzu',  # Provide your subject here
-                    message=f'Hello {name},\n\n{message}',
+                email_message = EmailMultiAlternatives(
+                    subject='Test mavzu',
+                    body=f'Hello {name},\n\n{message}',
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[email],
-                    fail_silently=False,
+                    to=[email],
                 )
+                if attachment:
+                    email_message.attach(attachment.name, attachment.read(), attachment.content_type)
+
+                email_message.send()
+
                 return Response({'success': True, 'message': 'Email sent successfully'})
             except Exception as e:
                 return Response({'success': False, 'message': str(e)})
         else:
             return Response({'success': False, 'message': serializer.errors})
 
+
 ###serializer.py:
+        
         
 class SendEmailSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     message = serializers.CharField()
     email = serializers.EmailField()
-
+    attachment = serializers.FileField(required=False)
 
 
 #### Mail in Settings.py:
